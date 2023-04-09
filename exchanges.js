@@ -1,8 +1,15 @@
 import path, { dirname } from "path";
 import { fileURLToPath } from 'url';
-import fs from "graceful-fs";
 import { truncate } from "fs/promises";
+import fs from "graceful-fs";
+import config from "./config.js";
+import oPath from "object-path";
 
+// set the global cache instance
+import globalCache from "./cache.js";
+let cache = new globalCache().getInstance();
+
+// set local filename and dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -23,15 +30,18 @@ function checkIfMatches(parameter, value, partial) {
 }
 
 export function getExchangesList(req, resultCallback) {
-  fs.readFile(path.join(__dirname, 'data', 'exchanges.json'), 'utf8', function (err, data) {
-    if (err) {
-      resultCallback({success: false, error: err});
-    } else {
-      let partial = req.query.partial ? req.query.partial.toUpperCase() == "TRUE" : false
+  let exchangesKey = `getExchangesList_${JSON.stringify(req.query)}`;
+  let cacheData = cache.getData(exchangesKey);
 
-      resultCallback({
-        success: true, 
-        data: JSON.parse(data).exchanges.filter(function (exchange) {
+  if (cacheData) {
+    resultCallback({success: true, data: cacheData});
+  } else {
+    fs.readFile(path.join(__dirname, 'data', 'exchanges.json'), 'utf8', function (err, data) {
+      if (err) {
+        resultCallback({success: false, error: err});
+      } else {
+        let partial = req.query.partial ? req.query.partial.toUpperCase() == "TRUE" : false;
+        let exchangeData = JSON.parse(data).exchanges.filter(function (exchange) {
           if (req.query.name) {
             if (!checkIfMatches(req.query.name, exchange.name, partial)) {
               return false;
@@ -51,8 +61,11 @@ export function getExchangesList(req, resultCallback) {
           }
 
           return true;
-        })
-      });
-    }
-  });
+        });
+        
+        cache.setData(exchangesKey, exchangeData, oPath.get(config, 'cache.exchanges.list.expire', config.cache.default));
+        resultCallback({success: true, data: exchangeData});
+      }
+    });
+  }
 };

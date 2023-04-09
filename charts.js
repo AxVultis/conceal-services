@@ -1,8 +1,14 @@
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import * as utils from "./utils.js";
 import smooth from "array-smooth";
+import config from "./config.js";
 import moment from "moment";
+import oPath from "object-path";
 import axios from "axios";
+
+// set the global cache instance
+import globalCache from "./cache.js";
+let cache = new globalCache().getInstance();
 
 const request = axios.create({
   timeout: 10000, // 10 seconds
@@ -110,31 +116,61 @@ function getCustomChart(options, chartData, resultCallback) {
 }
 
 export function getPriceChart(options, resultCallback) {
-  getCoinGeckoData(options, function (data) {
-    if (data) {
-      getCustomChart(options, data.prices, resultCallback);
-    } else {
-      resultCallback(null);
-    }
-  });
+  let chartKey = `getPriceChart_${JSON.stringify(options)}`;
+  let cacheData = cache.getData(chartKey);
+
+  if (cacheData) {
+    resultCallback(cacheData);
+  } else {
+    getCoinGeckoData(options, function (data) {
+      if (data) {
+        getCustomChart(options, data.prices, function(chart) {
+          cache.setData(chartKey, chart, oPath.get(config, 'cache.charts.expire', config.cache.default));
+          resultCallback(chart);
+        });
+      } else {
+        resultCallback(null);
+      }
+    });
+  }
 };
 
 export function getVolumeChart(options, resultCallback) {
-  getCoinGeckoData(options, function (data) {
-    if (data) {
-      getCustomChart(options, data.total_volumes, resultCallback);
-    } else {
-      resultCallback(null);
-    }
-  });
+  let chartKey = `getVolumeChart_${JSON.stringify(options)}`;
+  let cacheData = cache.getData(chartKey);
+
+  if (cacheData) {
+    resultCallback(cacheData);
+  } else {
+    getCoinGeckoData(options, function (data) {
+      if (data) {
+        getCustomChart(options, data.total_volumes, function(chart) {
+          cache.setData(chartKey, chart, oPath.get(config, 'cache.charts.expire', config.cache.default));
+          resultCallback(chart);
+        });
+      } else {
+        resultCallback(null);
+      }
+    });
+  }
 };
 
 export function getMarketcapChart(options, resultCallback) {
-  getCoinGeckoData(options, function (data) {
-    if (data) {
-      getCustomChart(options, data.market_caps, resultCallback);
-    } else {
-      resultCallback(null);
-    }
-  });
+  let chartKey = `getMarketcapChart_${JSON.stringify(options)}`;
+  let cacheData = cache.getData(chartKey);
+
+  if (cacheData) {
+    resultCallback(cacheData);
+  } else {
+    getCoinGeckoData(options, function (data) {
+      if (data) {
+        getCustomChart(options, data.market_caps, function(chart) {
+          cache.setData(chartKey, chart, oPath.get(config, 'cache.charts.expire', config.cache.default));
+          resultCallback(chart);
+        });
+      } else {
+        resultCallback(null);
+      }
+    });
+  }
 };

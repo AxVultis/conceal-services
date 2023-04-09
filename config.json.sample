@@ -2,6 +2,25 @@
   "server": {
     "port": 3000
   },
+  "cache": {
+    "default": 600,
+    "charts": {
+      "expire": 3600
+    },
+    "pools": {      
+      "list": {
+        "expire": 7200
+      },
+      "data": {
+        "expire": 600
+      }
+    },
+    "exchanges": {
+      "list": {
+        "expire": 7200
+      }
+    }
+  },
   "nodes": {
     "cache": {
       "expire": 600,
