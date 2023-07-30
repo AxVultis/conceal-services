@@ -7,7 +7,7 @@
     "charts": {
       "expire": 3600
     },
-    "pools": {      
+    "pools": {
       "list": {
         "expire": 7200
       },
@@ -26,5 +26,9 @@
       "expire": 600,
       "checkPeriod": 120
     }
+  },
+  "services": {
+    "api": "https://explorer.conceal.network/daemon",
+    "pool": "https://explorer.conceal.network/pool"
   }
 }

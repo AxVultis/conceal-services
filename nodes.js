@@ -10,7 +10,7 @@ export class nodes {
     this.geoJSONArray = [];
 
     this.addressList = [
-      "https://explorer.conceal.network/daemon/getpeers"
+      config.services.api + "/getpeers"
     ];
 
     this.request = axios.create({
@@ -45,7 +45,7 @@ export class nodes {
       }
     }
 
-    this.request.get("https://explorer.conceal.network/pool/list?isReachable=true").then(response => {
+    this.request.get( config.services.pool + "/list?isReachable=true").then(response => {
       let data = response.data;
 
       if (data.success) {
